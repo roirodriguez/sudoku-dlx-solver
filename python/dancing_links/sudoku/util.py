@@ -1,3 +1,4 @@
+import io
 from math import sqrt
 from .. import dlx_solver as dlx
 
@@ -58,9 +59,13 @@ class SudokuPuzzle:
             upper_nodes[nodes[3].col] = nodes[3]
             # setup column links
             nodes[0].column = grid.cols[nodes[0].col]
+            nodes[0].column.size += 1
             nodes[1].column = grid.cols[nodes[1].col]
+            nodes[1].column.size += 1
             nodes[2].column = grid.cols[nodes[2].col]
+            nodes[2].column.size += 1
             nodes[3].column = grid.cols[nodes[3].col]
+            nodes[3].column.size += 1
         for i, val in enumerate(puzzle):
             if val > 0 and val <= self.max_digit:
                 # given digit
@@ -74,20 +79,24 @@ class SudokuPuzzle:
             grid.cols[i].up = node
         return grid
 
-    def print_sudoku_grid_from_solution(self):
+    def printable_sudoku_grid_from_solution(self):
         solution = self.get_sudoku_grid_from_dlx_solution()
         block_separator = ("+-" + "--" * self.dim) * self.dim + "+"
+        output = io.StringIO()
         # print solution array
-        print(block_separator)
+        print(block_separator, file=output)
         for i, row in enumerate(solution):
-            print("| ", end='')
+            print("| ", end='', file=output)
             for j, val in enumerate(row):
-                print(f"{val} ", end='')
+                print(f"{val} ", end='', file=output)
                 if j % self.dim == self.dim - 1:
-                    print("| ", end='')
-            print("")
+                    print("| ", end='', file=output)
+            print(file=output)
             if i % self.dim == self.dim - 1:
-                print(block_separator)
+                print(block_separator, file=output)
+        contents = output.getvalue()
+        output.close()
+        return contents
 
     def get_sudoku_grid_from_dlx_solution(self):
         solution_mat = [[0 for _ in range(self.max_digit)] for _ in range(self.max_digit)]

@@ -1,4 +1,5 @@
 import sys
+import time
 
 
 _MAX_INT = sys.maxsize
@@ -47,6 +48,7 @@ class Grid:
         self.n_rows = n_rows
         self.n_cols = n_cols
         self.solution_listeners = []
+        self.profile_listeners = []
         self.colnames = colnames if colnames else list(range(1, n_cols+1))
         # create header
         self.root = Node()
@@ -56,6 +58,7 @@ class Grid:
             col = Node(name=colname)
             col.column = col
             col.left = last_node
+            col.size = 0
             last_node.right = col
             last_node = col
             colnodes.append(col)
@@ -101,12 +104,14 @@ class Grid:
         return min_col
 
     def search(self, k=0):
-        #print(f"test at k={k}")
         if self.root.right == self.root:
             for listen in self.solution_listeners:
                 listen(self)
             return True
         column = self.choose_column()
+        # necessary improvement: fail early if column size is 0
+        if column.size < 1:
+            return False
         Grid.cover(column)
         for r in column.down_iterator():
             self._exact_cover_solution.append(r)

@@ -1,3 +1,5 @@
+import time
+import threading as th
 from argparse import ArgumentParser
 from .util import SudokuPuzzle
 
@@ -22,7 +24,8 @@ class SudokuPuzzleSolver(SudokuPuzzle):
     def _install_listeners(self):
         # install print solution listener
         def _print_sol_listener(grid):
-            self.print_sudoku_grid_from_solution()
+            sudoku_str = self.printable_sudoku_grid_from_solution()
+            print(sudoku_str)
             print()
         self.grid.solution_listeners.append(_print_sol_listener)
         # install solution count listener
@@ -34,7 +37,6 @@ class SudokuPuzzleSolver(SudokuPuzzle):
         # solve and get all solutions
         while self.grid.search():
             continue
-
 
 if __name__ == "__main__":
     conf = parse_args()
