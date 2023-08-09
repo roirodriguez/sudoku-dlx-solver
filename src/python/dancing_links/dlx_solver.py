@@ -109,7 +109,7 @@ class Grid:
                 listen(self)
             return True
         column = self.choose_column()
-        # necessary improvement: fail early if column size is 0
+        # avoid the next block if column size is 0
         if column.size < 1:
             return False
         Grid.cover(column)
