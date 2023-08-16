@@ -4,7 +4,7 @@
 
 #include "dlx_types.h"
 #include "dlx_util.h"
-#include "util/knut_paper_data.h"
+#include "util/test_data.h"
 
 
 #define strbool(a)  ((a)?"true":"false")

@@ -89,15 +89,40 @@ struct BooleanMatrix *get_grid_boolean_matrix_repr(struct Grid *grid)
     {
         dlx_size_t i, j;
         struct BooleanMatrix *matrix = new_boolean_matrix(grid->n_rows, grid->n_cols);
-        struct Node *ptr;
-        for (j=0; j<grid->n_cols; j++)
+        struct Node *node_ptr, *col_ptr;
+        col_ptr = grid->root;
+        while(grid->root != (col_ptr = col_ptr->right))
         {
-            ptr = &(grid->cols[j]);
-            while(&(grid->cols[j]) != (ptr = ptr->down))
+            node_ptr = col_ptr;
+            while (col_ptr != (node_ptr = node_ptr->down))
             {
-                i = ptr->dlx_row_idx;
+                i = node_ptr->dlx_row_idx;
+                j = node_ptr->dlx_column_idx;
                 matrix->matrix[i][j] = true;
             }
+        }
+        return matrix;
+    }
+    return NULL;
+}
+
+
+struct BooleanMatrix *get_solution_boolean_matrix_repr(struct Grid *solved_grid)
+{
+    if (solved_grid != NULL)
+    {
+        struct NodeStack *stack = solved_grid->solution_stack;
+        struct BooleanMatrix *matrix = new_boolean_matrix(stack->size, solved_grid->n_cols);
+        struct NodeStackItem *ptr = stack->top;
+        struct Node *row_ptr;
+        dlx_size_t i=0;
+        while(ptr != NULL)
+        {
+            row_ptr = ptr->data_ptr;
+            while(ptr->data_ptr != (row_ptr = row_ptr->right))
+                matrix->matrix[i][row_ptr->dlx_column_idx] = true;
+            ptr = ptr->prev;
+            i++;
         }
         return matrix;
     }

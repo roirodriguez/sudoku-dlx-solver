@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "dlx.h"
 #include "dlx_util.h"
@@ -168,23 +170,90 @@ struct Grid *get_knut_paper_basic_grid(void)
 struct BooleanMatrix *get_knut_paper_basic_matrix(void)
 {
     struct BooleanMatrix *matrix = new_boolean_matrix(6, 7);
-
-    matrix->matrix[0][2] = true;
-    matrix->matrix[0][4] = true;
-    matrix->matrix[0][5] = true;
-    matrix->matrix[1][0] = true;
-    matrix->matrix[1][3] = true;
-    matrix->matrix[1][6] = true;
-    matrix->matrix[2][1] = true;
-    matrix->matrix[2][2] = true;
-    matrix->matrix[2][5] = true;
-    matrix->matrix[3][0] = true;
-    matrix->matrix[3][3] = true;
-    matrix->matrix[4][1] = true;
-    matrix->matrix[4][6] = true;
-    matrix->matrix[5][3] = true;
-    matrix->matrix[5][4] = true;
-    matrix->matrix[5][6] = true;
-
+    bool *ptr = calloc(42, sizeof(bool));
+    bool data[42] = {
+        false, false, true, false, true, true, false,
+        true, false, false, true, false, false, true,
+        false, true, true, false, false, true, false,
+        true, false, false, true, false, false, false,
+        false, true, false, false, false, false, true,
+        false, false, false, true, true, false, true
+    };
+    memcpy(ptr, data, 42 * sizeof(bool));
+    for(int i=0; i<6; i++)
+        matrix->matrix[i] = (ptr + i* 7 * sizeof(bool));
     return matrix;
+}
+
+
+struct BooleanMatrix *get_knut_paper_matrix_col3_covered()
+{
+    struct BooleanMatrix *matrix = new_boolean_matrix(6, 7);
+    bool *ptr = calloc(42, sizeof(bool));
+    bool data[42] = {
+        false, false, true, false, true, true, false,
+        false, false, false, false, false, false, false,
+        false, true, true, false, false, true, false,
+        false, false, false, false, false, false, false,
+        false, true, false, false, false, false, true,
+        false, false, false, false, false, false, false
+    };
+    memcpy(ptr, data, 42 * sizeof(bool));
+    for(int i=0; i<6; i++)
+        matrix->matrix[i] = (ptr + i* 7 * sizeof(bool));
+    return matrix;    
+}
+
+
+struct BooleanMatrix *get_knut_paper_matrix_col35_covered()
+{
+    struct BooleanMatrix *matrix = new_boolean_matrix(6, 7);
+    bool *ptr = calloc(42, sizeof(bool));
+    bool data[42] = {
+        false, false, false, false, false, false, false,
+        false, false, false, false, false, false, false,
+        false, false, false, false, false, false, false,
+        false, false, false, false, false, false, false,
+        false, true, false, false, false, false, true,
+        false, false, false, false, false, false, false
+    };
+    memcpy(ptr, data, 42 * sizeof(bool));
+    for(int i=0; i<6; i++)
+        matrix->matrix[i] = (ptr + i* 7 * sizeof(bool));
+    return matrix;    
+}
+
+
+bool check_expected(struct BooleanMatrix *matrix, struct BooleanMatrix *expected)
+{
+    bool check = true;
+    for (int i=0; i<matrix->n_rows; i++)
+        for (int j=0; j<matrix->n_cols; j++)
+            check &= (matrix->matrix[i][j] == expected->matrix[i][j]);
+    return check;
+}
+
+
+bool check_exact_cover(struct BooleanMatrix *sol_matrix)
+{
+    bool check = false;
+    for (dlx_size_t j=0; j<sol_matrix->n_cols; j++)
+    {
+        for (dlx_size_t i=0; i<sol_matrix->n_rows; i++)
+            check ^= sol_matrix->matrix[i][j];
+        if (!check) return false;
+        check = false;
+    }
+}
+
+
+void print_boolean_matrix(struct BooleanMatrix *matrix)
+{
+    for (int i=0; i<matrix->n_rows; i++)
+    {
+        for (int j=0; j<matrix->n_cols; j++)
+            printf("%d ", matrix->matrix[i][j]);
+        printf("\n");
+    }
+    printf("\n");
 }
