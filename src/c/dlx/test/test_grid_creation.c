@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <criterion/criterion.h>
 #include "dlx.h"
 

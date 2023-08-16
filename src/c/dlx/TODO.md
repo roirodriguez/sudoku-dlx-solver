@@ -1,4 +1,3 @@
-- Create and test functions from / to bool array.
 - Test cover and uncover with base example from dlx paper.
 - Search test.
 - Refactor sudoku.(h,c) to the new apis.

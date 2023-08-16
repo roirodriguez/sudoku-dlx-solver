@@ -1,3 +1,5 @@
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+
 function(register_criterion_test arg_test_name arg_test_source_file)
   add_executable(${arg_test_name} ${arg_test_source_file})
 
@@ -21,3 +23,6 @@ endfunction()
 register_criterion_test(test_node_stack test_node_stack.c)
 register_criterion_test(test_grid_creation test_grid_creation.c)
 register_criterion_test(test_bool_matrix_util test_bool_matrix_util.c)
+target_sources(test_bool_matrix_util PRIVATE util/knut_paper_data.c)
+register_criterion_test(test_dlx_search test_dlx_search.c)
+target_sources(test_dlx_search PRIVATE util/knut_paper_data.c)
