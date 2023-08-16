@@ -5,24 +5,28 @@
 #include "dlx.h"
 #include "sudoku.h"
 
+
 void _insert_nodes(dlx_size_t cell_idx, dlx_size_t value,
                     struct Node **upper_nodes, struct Node **grid_cols);
 
+
 struct Grid *create_sudoku_grid (char *puzzle_str)
 {
+    /*
     struct Grid *grid = malloc(sizeof(struct Grid *));
     grid = calloc(1, sizeof(struct Grid));
     struct Node **cols = malloc(N_RESTRICTIONS * sizeof(struct Node **));
 
     /* Create header (column indexes) */
-    struct Node *root = create_empty_node();
+    /*
+    struct Node *root = new_node();
     grid->root = root;
-    cols[0] = create_empty_node();
+    cols[0] = new_node();
     root->right = cols[0];
     cols[0]->left = root;
     for (dlx_size_t i=1; i<N_RESTRICTIONS; i++)
     {
-        cols[i] = create_empty_node();
+        cols[i] = new_node();
         cols[i]->left = cols[i-1];
         cols[i-1]->right = cols[i];
     }
@@ -33,6 +37,7 @@ struct Grid *create_sudoku_grid (char *puzzle_str)
      * Insert nodes parsing from puzzle_str, one row at a time. upper_nodes helps
      * keeping track of last vertical inserted nodes.
      */
+    /*
     struct Node **upper_nodes = malloc(N_RESTRICTIONS * sizeof(struct Node **));
     memcpy(upper_nodes, cols, N_RESTRICTIONS * sizeof(*cols));
     //upper_nodes = cols;
@@ -54,6 +59,7 @@ struct Grid *create_sudoku_grid (char *puzzle_str)
      * Finish column linking: _insert_nodes modified upper_nodes to contain here
      * the last inserted node by column.
      */
+    /*
     for (i=0; i<N_RESTRICTIONS; i++)
     {
         upper_nodes[i]->down = cols[i];
@@ -61,11 +67,14 @@ struct Grid *create_sudoku_grid (char *puzzle_str)
     }
 
     return grid;
+    */
+   return NULL;
 }
 
 void _insert_nodes(dlx_size_t cell_idx, dlx_size_t value,
                     struct Node **upper_nodes, struct Node **grid_cols)
 {
+    /*
     dlx_size_t sudoku_row, sudoku_col, sudoku_block;
     sudoku_row = cell_idx / MAX_DIGIT;
     sudoku_col = cell_idx % MAX_DIGIT;
@@ -75,13 +84,13 @@ void _insert_nodes(dlx_size_t cell_idx, dlx_size_t value,
     // 4 restrictions (1 digit/cell, row, col and block), so we need 4 nodes
     struct Node **nodes;
     nodes = calloc(4, sizeof(struct Node **));
-    nodes[0] = create_empty_node();
+    nodes[0] = new_node();
     nodes[0]->dlx_column_idx = cell_idx; // so nodes[0] is the cell constraint
-    nodes[1] = create_empty_node();
+    nodes[1] = new_node();
     nodes[1]->dlx_column_idx = SIZE + MAX_DIGIT * sudoku_row + value - 1; // row constraint
-    nodes[2] = create_empty_node();
+    nodes[2] = new_node();
     nodes[2]->dlx_column_idx = 2*SIZE + MAX_DIGIT * sudoku_col + value - 1; // col constraint
-    nodes[3] = create_empty_node();
+    nodes[3] = new_node();
     nodes[3]->dlx_column_idx = 3*SIZE + MAX_DIGIT * sudoku_block + value - 1; // block constraint        
 
     // link row
@@ -119,6 +128,7 @@ void _insert_nodes(dlx_size_t cell_idx, dlx_size_t value,
     grid_cols[nodes[2]->dlx_column_idx]->size++;
     nodes[3]->column = grid_cols[nodes[3]->dlx_column_idx];
     grid_cols[nodes[3]->dlx_column_idx]->size++;
+    */
 }
 
 void sudoku_solution_printing_callback(void)
