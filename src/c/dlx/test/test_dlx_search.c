@@ -1,11 +1,10 @@
-#include <stdio.h>
 #include <criterion/criterion.h>
 #include <criterion/new/assert.h>
 
 #include <stdlib.h>
 #include "dlx.h"
 #include "dlx_util.h"
-#include "util/test_data.h"
+#include "util/test_data_dlx.h"
 
 
 struct Grid *grid = NULL;
