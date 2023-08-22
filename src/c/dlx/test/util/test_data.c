@@ -167,6 +167,158 @@ struct Grid *get_knut_paper_basic_grid(void)
     return grid;
 }
 
+
+struct Grid *get_knut_paper_nosol_grid(void)
+{
+    struct Grid *grid = get_knut_paper_basic_grid();
+
+    // just remove row 3 (not removing row 0 to keep a ptr to the node memory chunk
+    // reserved into the grid).
+    struct Node *row_ptr = grid->cols[0].down->down;
+    struct Node *first = row_ptr;
+    
+    // loop does not free because node space was reserved in block, so 
+    // removed row will be freed with the rest of the grid by calling
+    // free_knut_paper_basic_grid
+    do
+    {
+        row_ptr->down->up = row_ptr->up;
+        row_ptr->up->down = row_ptr->down;
+        row_ptr->column->size--;
+        row_ptr = row_ptr->right;
+    } 
+    while(first != row_ptr);
+
+    grid->n_rows--;
+    
+    return grid;
+}
+
+
+struct Grid *get_knut_paper_3sol_grid(void)
+{
+    struct Grid *grid = get_knut_paper_basic_grid();
+
+    // Add 1 1 1 0 0 1 0 so that is a solution with existing row 6
+    struct Node *nodes = calloc(4, sizeof(struct Node));
+
+    nodes[0].column = &(grid->cols[0]);
+    nodes[0].dlx_column_idx = 0;
+    nodes[0].dlx_row_idx = 6;
+    nodes[0].right = &(nodes[1]);
+    nodes[0].left = &(nodes[3]);
+    nodes[0].up = grid->cols[0].up;
+    nodes[0].down = &(grid->cols[0]);
+    grid->cols[0].up->down = &(nodes[0]);
+    grid->cols[0].up = &(nodes[0]);
+    grid->cols[0].size++;
+
+    nodes[1].column = &(grid->cols[1]);
+    nodes[1].dlx_column_idx = 1;
+    nodes[1].dlx_row_idx = 6;
+    nodes[1].right = &(nodes[2]);
+    nodes[1].left = &(nodes[0]);
+    nodes[1].up = grid->cols[1].up;
+    nodes[1].down = &(grid->cols[1]);
+    grid->cols[1].up->down = &(nodes[1]);
+    grid->cols[1].up = &(nodes[1]);
+    grid->cols[1].size++;
+
+    nodes[2].column = &(grid->cols[2]);
+    nodes[2].dlx_column_idx = 2;
+    nodes[2].dlx_row_idx = 6;
+    nodes[2].right = &(nodes[3]);
+    nodes[2].left = &(nodes[1]);
+    nodes[2].up = grid->cols[2].up;
+    nodes[2].down = &(grid->cols[2]);
+    grid->cols[2].up->down = &(nodes[2]);
+    grid->cols[2].up = &(nodes[2]);
+    grid->cols[2].size++;
+
+    nodes[3].column = &(grid->cols[5]);
+    nodes[3].dlx_column_idx = 5;
+    nodes[3].dlx_row_idx = 6;
+    nodes[3].right = &(nodes[0]);
+    nodes[3].left = &(nodes[2]);
+    nodes[3].up = grid->cols[5].up;
+    nodes[3].down = &(grid->cols[5]);
+    grid->cols[5].up->down = &(nodes[3]);
+    grid->cols[5].up = &(nodes[3]);
+    grid->cols[5].size++;
+    
+
+    // Add 0 1 1 0 1 1 0 so that is a solution with existing row 2
+    nodes = calloc(4, sizeof(struct Node));
+
+    nodes[0].column = &(grid->cols[1]);
+    nodes[0].dlx_column_idx = 1;
+    nodes[0].dlx_row_idx = 7;
+    nodes[0].right = &(nodes[1]);
+    nodes[0].left = &(nodes[3]);
+    nodes[0].up = grid->cols[1].up;
+    nodes[0].down = &(grid->cols[1]);
+    grid->cols[1].up->down = &(nodes[0]);
+    grid->cols[1].up = &(nodes[0]);
+    grid->cols[1].size++;
+
+    nodes[1].column = &(grid->cols[2]);
+    nodes[1].dlx_column_idx = 2;
+    nodes[1].dlx_row_idx = 7;
+    nodes[1].right = &(nodes[2]);
+    nodes[1].left = &(nodes[0]);
+    nodes[1].up = grid->cols[2].up;
+    nodes[1].down = &(grid->cols[2]);
+    grid->cols[2].up->down = &(nodes[1]);
+    grid->cols[2].up = &(nodes[1]);
+    grid->cols[2].size++;
+
+    nodes[2].column = &(grid->cols[4]);
+    nodes[2].dlx_column_idx = 4;
+    nodes[2].dlx_row_idx = 6;
+    nodes[2].right = &(nodes[3]);
+    nodes[2].left = &(nodes[1]);
+    nodes[2].up = grid->cols[4].up;
+    nodes[2].down = &(grid->cols[4]);
+    grid->cols[4].up->down = &(nodes[2]);
+    grid->cols[4].up = &(nodes[2]);
+    grid->cols[4].size++;
+
+    nodes[3].column = &(grid->cols[5]);
+    nodes[3].dlx_column_idx = 5;
+    nodes[3].dlx_row_idx = 6;
+    nodes[3].right = &(nodes[0]);
+    nodes[3].left = &(nodes[2]);
+    nodes[3].up = grid->cols[5].up;
+    nodes[3].down = &(grid->cols[5]);
+    grid->cols[5].up->down = &(nodes[3]);
+    grid->cols[5].up = &(nodes[3]);
+    grid->cols[5].size++;
+
+    grid->n_rows += 2;
+    return grid;
+}
+
+
+void free_knut_paper_basic_grid(struct Grid *grid)
+{
+    // Nodes were allocated with calloc in block, so freeing the first one works
+    free(grid->cols[2].down);
+    free_grid(grid);
+}
+
+
+void free_knut_paper_3sol_grid(struct Grid *grid)
+{
+    // free the newly 2 inserted rows
+    struct Node *free_ptr1 = grid->cols[0].down->down->down;
+    struct Node *free_ptr2 = grid->cols[1].down->down->down->down;
+    free(free_ptr1);
+    free(free_ptr2);
+    // free the rest of the grid
+    free_knut_paper_basic_grid(grid);
+}
+
+
 struct BooleanMatrix *get_knut_paper_basic_matrix(void)
 {
     struct BooleanMatrix *matrix = new_boolean_matrix(6, 7);
@@ -234,8 +386,28 @@ bool check_expected(struct BooleanMatrix *matrix, struct BooleanMatrix *expected
 }
 
 
-bool check_exact_cover(struct BooleanMatrix *sol_matrix)
+struct BooleanMatrix *_nodelist_to_matrix(struct Grid *grid, struct NodeList *lst)
 {
+    if (grid == NULL || lst == NULL)
+        return NULL;
+    
+    struct BooleanMatrix *mat = new_boolean_matrix(lst->size, grid->n_cols);
+    for (int i=0; i<lst->size; i++)
+    {
+        struct Node *row_ptr = lst->list[i];
+        do
+        {
+            mat->matrix[i][row_ptr->dlx_column_idx] = true;
+        } while (lst->list[i] != (row_ptr = row_ptr->right));        
+    }
+    
+    return mat;
+}
+
+
+bool check_exact_cover(struct Grid *grid, struct NodeList *lst)
+{
+    struct BooleanMatrix *sol_matrix = _nodelist_to_matrix(grid, lst);
     bool check = false;
     for (dlx_size_t j=0; j<sol_matrix->n_cols; j++)
     {
@@ -244,6 +416,7 @@ bool check_exact_cover(struct BooleanMatrix *sol_matrix)
         if (!check) return false;
         check = false;
     }
+    return true;
 }
 
 

@@ -33,7 +33,7 @@ Test(test_grid_creation, new_grid_right_test, .init=setup, .fini=teardown)
     {
         cr_assert_not_null(ptr);
         cr_assert_eq(&(grid->cols[i]), ptr, "Right pointer and corresponding col ptr are the same.");
-        cr_assert_eq(i+1, ptr->dlx_column_idx, "Column idx is the expected and 1-based.");
+        cr_assert_eq(i, ptr->dlx_column_idx, "Column idx is the expected and 0-based.");
         ptr = ptr->right;
     }
     cr_assert_eq(grid->root, ptr, "Right pointer comes back to the root.");
@@ -47,7 +47,7 @@ Test(test_grid_creation, new_grid_left_test, .init=setup, .fini=teardown)
     {
         cr_assert_not_null(ptr);
         cr_assert_eq(&(grid->cols[i-1]), ptr, "Left pointer and corresponding col ptr are the same.");
-        cr_assert_eq(i, ptr->dlx_column_idx, "Column idx is the expected and 1-based.");        
+        cr_assert_eq(i-1, ptr->dlx_column_idx, "Column idx is the expected and 0-based.");        
         ptr = ptr->left;
     }
     cr_assert_eq(grid->root, ptr, "Left pointer comes back to the root.");

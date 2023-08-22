@@ -109,22 +109,74 @@ struct BooleanMatrix *get_grid_boolean_matrix_repr(struct Grid *grid)
 
 struct BooleanMatrix *get_solution_boolean_matrix_repr(struct Grid *solved_grid)
 {
-    if (solved_grid != NULL)
+    if (solved_grid == NULL)
+        return NULL;
+
+    struct NodeStack *stack = solved_grid->solution_stack;
+    struct BooleanMatrix *matrix = new_boolean_matrix(stack->size, solved_grid->n_cols);
+    struct NodeStackItem *ptr = stack->top;
+    struct Node *row_ptr;
+    dlx_size_t i=0;
+    while(ptr != NULL)
     {
-        struct NodeStack *stack = solved_grid->solution_stack;
-        struct BooleanMatrix *matrix = new_boolean_matrix(stack->size, solved_grid->n_cols);
-        struct NodeStackItem *ptr = stack->top;
-        struct Node *row_ptr;
-        dlx_size_t i=0;
-        while(ptr != NULL)
-        {
-            row_ptr = ptr->data_ptr;
-            while(ptr->data_ptr != (row_ptr = row_ptr->right))
-                matrix->matrix[i][row_ptr->dlx_column_idx] = true;
-            ptr = ptr->prev;
-            i++;
-        }
-        return matrix;
+        row_ptr = ptr->data_ptr;
+        while(ptr->data_ptr != (row_ptr = row_ptr->right))
+            matrix->matrix[i][row_ptr->dlx_column_idx] = true;
+        ptr = ptr->prev;
+        i++;
     }
-    return NULL;
+    return matrix;
+}
+
+
+struct NodeList *new_node_list(dlx_size_t size)
+{
+    struct NodeList *lst = malloc(sizeof(struct NodeList));
+    lst->size = size;
+    lst->list = malloc(size * sizeof(struct Node *));
+    return lst;
+}
+
+
+void free_node_list(struct NodeList *list)
+{
+    free(list); // do not free Nodes here
+}
+
+
+struct SolutionList *new_solution_list(dlx_size_t max_size)
+{
+    struct SolutionList *lst = malloc(sizeof(struct SolutionList));
+    lst->max_size = max_size;
+    lst->used_size = 0;
+    lst->list = malloc(max_size * sizeof(struct NodeList *));
+    return lst;
+}
+
+
+void free_solution_list(struct SolutionList *solution_lst)
+{
+    for (int i=0; i<solution_lst->used_size; i++)
+        free_node_list(solution_lst->list[i]);
+    free(solution_lst);
+}
+
+
+void default_solution_callback_template(struct Grid *solved_grid, struct SolutionList *solution_lst)
+{
+    if (solved_grid == NULL || solution_lst == NULL || ((solution_lst->max_size - solution_lst->used_size) < 1))
+        return;
+
+    // Solution stack will be lost when popping at search, copy it here the callback
+    dlx_size_t i = 0, size = solved_grid->solution_stack->size;
+    struct NodeList *solution = new_node_list(size);
+    struct NodeStackItem *ptr = solved_grid->solution_stack->top;
+    while (ptr != NULL)
+    {
+        solution->list[i] = ptr->data_ptr;
+        i++;
+        ptr = ptr->prev;
+    }
+    solution_lst->list[solution_lst->used_size] = solution;
+    solution_lst->used_size++;
 }

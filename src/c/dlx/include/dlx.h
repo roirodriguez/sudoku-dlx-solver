@@ -5,6 +5,7 @@
 #include "dlx_types.h"
 #include "dlx_node_stack.h"
 
+
 struct Node {
     struct Node *up;
     struct Node *down;
@@ -30,7 +31,7 @@ struct Grid {
  * Helper functions for creating / freeing Nodes and Grids.
  */
 struct Grid *new_grid(dlx_size_t n_cols);
-void free_grid(struct Grid *);
+void free_grid(struct Grid *);  // does not free nodes, only cols and root. implement one free function per builder.
 
 /*
  * DLX related functions.
@@ -39,7 +40,7 @@ void cover(struct Node *column);
 void uncover(struct Node *column);
 struct Node *choose_column(struct Node *root_node);
 struct Node *choose_grid_column(struct Grid *grid);
-bool search(struct Grid *grid, void (*sol_callback)(void));
+bool search(struct Grid *grid, void (*sol_callback)(struct Grid *grid));
 
 
 #endif /* _DLX_H */

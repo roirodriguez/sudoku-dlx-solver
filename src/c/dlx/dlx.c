@@ -16,11 +16,11 @@ struct Grid *new_grid(dlx_size_t n_cols)
     struct Node *root = calloc(1, sizeof(struct Node));
     root->right = &cols[0];
     cols[0].left = root;
-    cols[0].dlx_column_idx = 1;
+    cols[0].dlx_column_idx = 0;
     for (dlx_size_t i=1; i<n_cols; i++)
     {
         cols[i].left = &cols[i-1];
-        cols[i].dlx_column_idx = i+1;
+        cols[i].dlx_column_idx = i;
         cols[i-1].right = &cols[i];
     }
     cols[n_cols-1].right = root;
@@ -111,80 +111,51 @@ struct Node *choose_grid_column(struct Grid *grid)
 }
 
 
-void append_solution(struct Grid *grid, struct Node *row)
-{
-    /*
-    struct NodeStack *solution = (struct NodeStack *) malloc(sizeof(struct NodeStack));
-    solution->next = NULL;
-    solution->solution = row;
-    if (grid->solution_last == NULL)
-    {
-        solution->prev = NULL;
-        grid->solution_first = grid->solution_last = solution;
-        return;
-    }
-    grid->solution_last->next = solution;
-    solution->prev = grid->solution_last;
-    grid->solution_last = solution;
-    */
-    return;
-}
-
-
-void pop_solution(struct Grid *grid)
-{
-    /*
-    if (grid->solution_last != NULL)
-    {
-        struct NodeStack *popped = grid->solution_last;
-        popped->prev->next = NULL;
-        grid->solution_last = popped->prev;
-        free(popped);
-    }
-    */
-}
-
-
-bool search(struct Grid *grid, void (*sol_callback)(void))
+bool search(struct Grid *grid, void (*sol_callback)(struct Grid *grid))
 {
     if (grid->root->right == grid->root)
     {
         // found a solution!
-        (*sol_callback)();
+        (*sol_callback)(grid);
         return true;
     }
 
     struct Node *column = choose_grid_column(grid);
     if (column->size == 0)
+    {
         return false;
-
+    }
     cover(column);
     
     struct Node *down_iter = column;
     struct Node *side_iter;
     while (column != (down_iter = down_iter->down))
     {
-        append_solution(grid, down_iter);
+        node_stack_push(down_iter, grid->solution_stack);
         side_iter = down_iter;
         while (down_iter != (side_iter = side_iter->right))
         {
             cover(side_iter->column);
         }
         search(grid, sol_callback);
-        pop_solution(grid);
+        node_stack_pop(grid->solution_stack);
         side_iter = down_iter;
         while (down_iter != (side_iter = side_iter->left))
         {
             uncover(side_iter->column);
         }
     }
-
     uncover(column);
     return false;
 }
 
 
-void free_grid(struct Grid *)
+void free_grid(struct Grid *grid)
 {
-
+    // free cols, allocated in block
+    free(grid->cols);
+    // free root node
+    free(grid->root);
+    // free the grid
+    free(grid);
 }
