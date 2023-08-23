@@ -169,22 +169,3 @@ dlx_size_t _calc_dim(char *str_puzzle)
     }
     return i;
 }
-
-
-void search_solution_printing_callback(struct Grid *solved_grid)
-{
-    struct NodeStackItem *stack_ptr = solved_grid->solution_stack->top;
-    /* TODO: This isn't good, i need to know here dim and size of the sudoku i just solved. Look for a better solution. */
-    dlx_size_t value, cellidx, size = solved_grid->n_cols / 4;
-    char *solution = malloc(size * sizeof(char) + 1);
-    solution[size] = '\0';
-    while(stack_ptr != NULL)
-    {
-        /* dlx row num gives us cell and value */
-        cellidx = stack_ptr->data_ptr->dlx_row_idx / 4;
-        value = 1 + stack_ptr->data_ptr->dlx_row_idx % 4;
-        solution[cellidx] = 48 + value;
-        stack_ptr = stack_ptr->prev;
-    }
-    puts(solution);
-}
