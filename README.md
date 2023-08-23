@@ -4,13 +4,16 @@
 
 This is an implementation of the dancing links algorithm 
 (https://arxiv.org/abs/cs/0011047) for solving exact cover problems, and a
-sudoku solver given as an example usage.
+sudoku solver given as an example usage. 
+
+A preliminary benchmark on the 17 clue dataset (copy given in the data/ dir) 
+gives 8976 puzzles/sec, which i think is not bad for a first version.
 
 The solver (including sudoku) was implemented first in python (see python/ 
 folder), as at the time of starting this project i wasn't confident enough 
 in my C skills.
 
-I'm using this just as a playground for improving my C skills.
+I'm using this mainly as a playground for improving my C skills.
 
 ## Building / usage
 
