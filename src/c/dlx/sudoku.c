@@ -1,57 +1,63 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "dlx.h"
 #include "sudoku.h"
 
 
-void _insert_nodes(dlx_size_t cell_idx, dlx_size_t value,
-                    struct Node **upper_nodes, struct Node **grid_cols);
+struct Node *_insert_row(dlx_size_t cell_idx, dlx_size_t value, struct SudokuGrid *sudoku_grid, 
+                           struct Node **upper_nodes);
+dlx_size_t _calc_dim(char *str_puzzle);
 
 
-struct Grid *create_sudoku_grid (char *puzzle_str)
+struct SudokuGrid *new_sudoku_grid (char *puzzle_str)
 {
-    /*
-    struct Grid *grid = malloc(sizeof(struct Grid *));
-    grid = calloc(1, sizeof(struct Grid));
-    struct Node **cols = malloc(N_RESTRICTIONS * sizeof(struct Node **));
-
-    /* Create header (column indexes) */
-    /*
-    struct Node *root = new_node();
-    grid->root = root;
-    cols[0] = new_node();
-    root->right = cols[0];
-    cols[0]->left = root;
-    for (dlx_size_t i=1; i<N_RESTRICTIONS; i++)
+    dlx_size_t dim = _calc_dim(puzzle_str);
+    if (dim > _MAX_DIMENSION)
     {
-        cols[i] = new_node();
-        cols[i]->left = cols[i-1];
-        cols[i-1]->right = cols[i];
+        perror("Dimension not supported.");
+        exit(EXIT_FAILURE);
     }
-    cols[N_RESTRICTIONS-1]->right = root;
-    root->left = cols[N_RESTRICTIONS-1];
+    
+    struct SudokuGrid *sudoku_grid = malloc(sizeof(struct SudokuGrid));
+    sudoku_grid->dim = dim;
+    sudoku_grid->max_digit = dim * dim;
+    sudoku_grid->size = sudoku_grid->max_digit * sudoku_grid->max_digit;
+    sudoku_grid->n_restrictions = sudoku_grid->size * 4;
+    sudoku_grid->_malloced_node_ptrs = new_node_list(sudoku_grid->max_digit * sudoku_grid->size);
+    sudoku_grid->grid = new_grid(sudoku_grid->n_restrictions);
+
+    struct Grid *grid = sudoku_grid->grid;
 
     /* 
      * Insert nodes parsing from puzzle_str, one row at a time. upper_nodes helps
      * keeping track of last vertical inserted nodes.
      */
-    /*
-    struct Node **upper_nodes = malloc(N_RESTRICTIONS * sizeof(struct Node **));
-    memcpy(upper_nodes, cols, N_RESTRICTIONS * sizeof(*cols));
-    //upper_nodes = cols;
-    dlx_size_t i, j, k;
-    for (i=0; i<SIZE; i++) // i = cell index
+    struct Node **upper_nodes = malloc(sudoku_grid->n_restrictions * sizeof(struct Node *));
+    dlx_size_t i;
+    for (i=0; i<sudoku_grid->n_restrictions; i++)
     {
-        for (j=0; j<MAX_DIGIT; j++) // j = value - 1
+        upper_nodes[i] = &(grid->cols[i]);
+    }
+
+    for (i = 0; i < sudoku_grid->size; i++) // i = cell index
+    {
+        if(isdigit(puzzle_str[i]) && (puzzle_str[i] - 48) != 0) // 48 is ascii for 0
         {
-            dlx_size_t value;
-            if(isdigit(puzzle_str[i]) && (value = puzzle_str[i] - 48) != 0) // 48 is ascii for 0
-                _insert_nodes(i, value, upper_nodes, cols);
-            else
-                for (k=1; k<=MAX_DIGIT; k++)
-                    _insert_nodes(i, k,  upper_nodes, cols);
+            dlx_size_t value = puzzle_str[i] - 48;
+            _insert_row(i, value, sudoku_grid, upper_nodes);
+            grid->n_rows++;
+        }
+        else
+        {
+            for (dlx_size_t j=1; j<=sudoku_grid->max_digit; j++)
+            {
+                _insert_row(i, j, sudoku_grid, upper_nodes);
+                grid->n_rows++;
+            }
         }
     }
 
@@ -59,79 +65,103 @@ struct Grid *create_sudoku_grid (char *puzzle_str)
      * Finish column linking: _insert_nodes modified upper_nodes to contain here
      * the last inserted node by column.
      */
-    /*
-    for (i=0; i<N_RESTRICTIONS; i++)
+    for (i=0; i<sudoku_grid->n_restrictions; i++)
     {
-        upper_nodes[i]->down = cols[i];
-        cols[i]->up = upper_nodes[i];
+        upper_nodes[i]->down = &(grid->cols[i]);
+        grid->cols[i].up = upper_nodes[i];
     }
 
-    return grid;
-    */
-   return NULL;
+    return sudoku_grid;
 }
 
-void _insert_nodes(dlx_size_t cell_idx, dlx_size_t value,
-                    struct Node **upper_nodes, struct Node **grid_cols)
+
+struct Node *_insert_row(dlx_size_t cell_idx, dlx_size_t value, struct SudokuGrid *sudoku_grid, 
+                           struct Node **upper_nodes)
 {
-    /*
+    static dlx_size_t dlx_row_idx = 0; // static, works because called sequentiallly
+
+    dlx_size_t dim = sudoku_grid->dim, size = sudoku_grid->size, max_digit = sudoku_grid->max_digit;
     dlx_size_t sudoku_row, sudoku_col, sudoku_block;
-    sudoku_row = cell_idx / MAX_DIGIT;
-    sudoku_col = cell_idx % MAX_DIGIT;
-    sudoku_block = DIM * (sudoku_row / DIM) + sudoku_col % DIM;  
+    sudoku_row = cell_idx / max_digit;
+    sudoku_col = cell_idx % max_digit;
+    sudoku_block = dim * (sudoku_row / dim) + sudoku_col % dim;  
     int i;
 
     // 4 restrictions (1 digit/cell, row, col and block), so we need 4 nodes
-    struct Node **nodes;
-    nodes = calloc(4, sizeof(struct Node **));
-    nodes[0] = new_node();
-    nodes[0]->dlx_column_idx = cell_idx; // so nodes[0] is the cell constraint
-    nodes[1] = new_node();
-    nodes[1]->dlx_column_idx = SIZE + MAX_DIGIT * sudoku_row + value - 1; // row constraint
-    nodes[2] = new_node();
-    nodes[2]->dlx_column_idx = 2*SIZE + MAX_DIGIT * sudoku_col + value - 1; // col constraint
-    nodes[3] = new_node();
-    nodes[3]->dlx_column_idx = 3*SIZE + MAX_DIGIT * sudoku_block + value - 1; // block constraint        
+    struct Node *nodes;
+    nodes = calloc(4, sizeof(struct Node));
+    sudoku_grid->_malloced_node_ptrs->list[dlx_row_idx] = nodes;
+
+    nodes[0].dlx_column_idx = cell_idx; // so nodes[0] is the cell constraint
+    nodes[1].dlx_column_idx = size + max_digit * sudoku_row + value - 1; // row constraint
+    nodes[2].dlx_column_idx = 2*size + max_digit * sudoku_col + value - 1; // col constraint
+    nodes[3].dlx_column_idx = 3*size + max_digit * sudoku_block + value - 1; // block constraint        
 
     // link row
-    nodes[0]->right = nodes[1];
-    nodes[1]->left = nodes[0];
-    nodes[1]->right = nodes[2];
-    nodes[2]->left = nodes[1];
-    nodes[2]->right = nodes[3];
-    nodes[3]->left = nodes[2];
-    nodes[3]->right = nodes[0];
-    nodes[0]->left = nodes[3];
+    nodes[0].right = &(nodes[1]);
+    nodes[1].left = &(nodes[0]);
+    nodes[1].right = &(nodes[2]);
+    nodes[2].left = &(nodes[1]);
+    nodes[2].right = &(nodes[3]);
+    nodes[3].left = &(nodes[2]);
+    nodes[3].right = &(nodes[0]);
+    nodes[0].left = &(nodes[3]);
 
     // link cols
-    nodes[0]->up = upper_nodes[nodes[0]->dlx_column_idx];
-    upper_nodes[nodes[0]->dlx_column_idx]->down = nodes[0];
-    nodes[1]->up = upper_nodes[nodes[1]->dlx_column_idx];
-    upper_nodes[nodes[1]->dlx_column_idx]->down = nodes[1]; 
-    nodes[2]->up = upper_nodes[nodes[2]->dlx_column_idx];
-    upper_nodes[nodes[2]->dlx_column_idx]->down = nodes[2];
-    nodes[3]->up = upper_nodes[nodes[3]->dlx_column_idx];
-    upper_nodes[nodes[3]->dlx_column_idx]->down = nodes[3];
+    nodes[0].up = upper_nodes[nodes[0].dlx_column_idx];
+    upper_nodes[nodes[0].dlx_column_idx]->down = &(nodes[0]);
+    nodes[1].up = upper_nodes[nodes[1].dlx_column_idx];
+    upper_nodes[nodes[1].dlx_column_idx]->down = &(nodes[1]); 
+    nodes[2].up = upper_nodes[nodes[2].dlx_column_idx];
+    upper_nodes[nodes[2].dlx_column_idx]->down = &(nodes[2]);
+    nodes[3].up = upper_nodes[nodes[3].dlx_column_idx];
+    upper_nodes[nodes[3].dlx_column_idx]->down = &(nodes[3]);
 
     // update upper nodes
-    upper_nodes[nodes[0]->dlx_column_idx] = nodes[0];
-    upper_nodes[nodes[1]->dlx_column_idx] = nodes[1];
-    upper_nodes[nodes[2]->dlx_column_idx] = nodes[2];
-    upper_nodes[nodes[3]->dlx_column_idx] = nodes[3];
+    upper_nodes[nodes[0].dlx_column_idx] = &(nodes[0]);
+    upper_nodes[nodes[1].dlx_column_idx] = &(nodes[1]);
+    upper_nodes[nodes[2].dlx_column_idx] = &(nodes[2]);
+    upper_nodes[nodes[3].dlx_column_idx] = &(nodes[3]);
 
     // update column linking
-    nodes[0]->column = grid_cols[nodes[0]->dlx_column_idx];
-    grid_cols[nodes[0]->dlx_column_idx]->size++;
-    nodes[1]->column = grid_cols[nodes[1]->dlx_column_idx];
-    grid_cols[nodes[1]->dlx_column_idx]->size++;
-    nodes[2]->column = grid_cols[nodes[2]->dlx_column_idx];
-    grid_cols[nodes[2]->dlx_column_idx]->size++;
-    nodes[3]->column = grid_cols[nodes[3]->dlx_column_idx];
-    grid_cols[nodes[3]->dlx_column_idx]->size++;
-    */
+    struct Node *cols = sudoku_grid->grid->cols;
+    nodes[0].column = &(cols[nodes[0].dlx_column_idx]);
+    cols[nodes[0].dlx_column_idx].size++;
+    nodes[1].column = &(cols[nodes[1].dlx_column_idx]);
+    cols[nodes[1].dlx_column_idx].size++;
+    nodes[2].column = &(cols[nodes[2].dlx_column_idx]);
+    cols[nodes[2].dlx_column_idx].size++;
+    nodes[3].column = &(cols[nodes[3].dlx_column_idx]);
+    cols[nodes[3].dlx_column_idx].size++;
+
+    dlx_row_idx++;
 }
 
-void sudoku_solution_printing_callback(void)
-{
 
+void free_sudoku_grid(struct SudokuGrid *sudoku_grid)
+{
+    free_grid(sudoku_grid->grid);
+    // free nodes
+    for (int i=0; i<sudoku_grid->_malloced_node_ptrs->size; i++)
+    {
+        struct Node *free_ptr = sudoku_grid->_malloced_node_ptrs->list[i];
+        if (free_ptr == NULL)
+            break;
+        free(free_ptr);
+    }
+    free_node_list(sudoku_grid->_malloced_node_ptrs);
+    free(sudoku_grid);
+}
+
+
+dlx_size_t _calc_dim(char *str_puzzle)
+{
+    dlx_size_t size = (dlx_size_t) strlen(str_puzzle);
+    dlx_size_t i;
+    for (i=0; i<_MAX_DIMENSION+1; i++)
+    {
+        if (i*i*i*i == size)
+            break;
+    }
+    return i;
 }

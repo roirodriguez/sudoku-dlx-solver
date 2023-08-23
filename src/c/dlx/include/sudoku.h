@@ -2,15 +2,24 @@
 #define _SUDOKU_H
 
 #include "dlx.h"
-
-#define DIM             ((dlx_size_t) 3)
-#define MAX_DIGIT       ((dlx_size_t) DIM*DIM)
-#define SIZE            ((dlx_size_t) MAX_DIGIT*MAX_DIGIT)
-#define N_RESTRICTIONS  ((dlx_size_t) 4 * SIZE)
+#include "dlx_util.h"
 
 
-struct Grid *create_sudoku_grid (char *puzzle_str);
-void sudoku_solution_printing_callback(void);
+#define _MAX_DIMENSION  3
+
+
+struct SudokuGrid {
+    struct Grid *grid;
+    dlx_size_t dim;
+    dlx_size_t max_digit;
+    dlx_size_t size;
+    dlx_size_t n_restrictions;
+    struct NodeList *_malloced_node_ptrs;
+};
+
+
+struct SudokuGrid *new_sudoku_grid (char *puzzle_str);
+void free_sudoku_grid(struct SudokuGrid *grid);
 
 
 #endif /* _SUDOKU_H */

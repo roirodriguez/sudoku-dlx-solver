@@ -4,8 +4,8 @@ project(dlx_solver VERSION 0.1)
 # Add ./cmake to the module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-add_library(dlx_lib STATIC dlx.c dlx_node_stack.c dlx_util.c)
-add_executable(dlx_solver sudoku.c main.c)
+add_library(dlx_lib STATIC dlx.c dlx_node_stack.c dlx_util.c sudoku.c)
+add_executable(dlx_solver main.c)
 target_link_libraries(dlx_solver dlx_lib)
 target_include_directories(dlx_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 

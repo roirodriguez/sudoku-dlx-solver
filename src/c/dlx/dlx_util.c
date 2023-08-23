@@ -133,7 +133,7 @@ struct NodeList *new_node_list(dlx_size_t size)
 {
     struct NodeList *lst = malloc(sizeof(struct NodeList));
     lst->size = size;
-    lst->list = malloc(size * sizeof(struct Node *));
+    lst->list = calloc(size, sizeof(struct Node *));
     return lst;
 }
 
