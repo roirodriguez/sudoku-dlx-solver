@@ -19,8 +19,8 @@ struct NodeStackItem {
 
 
 /* 
- * NodeStack is used for solution. The following are our stack related
- * functions
+ * NodeStack is used for solution construction during search. 
+ * The following are our stack related functions.
  */
 struct NodeStack *new_node_stack(void);
 void node_stack_push(struct Node *node, struct NodeStack *stack);

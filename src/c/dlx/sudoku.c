@@ -49,7 +49,10 @@ struct SudokuGrid *new_sudoku_grid (char *puzzle_str)
         {
             dlx_size_t value = puzzle_str[i] - 48;
             _insert_row(i, value, sudoku_grid, upper_nodes);
-            grid->n_rows++;
+            // when inserting a given respect the fact that next inserted row
+            // will skip 3 more rows in dlx_row_idx. important for booleanmatrix repr
+            // and for api consistency.
+            grid->n_rows += 4;
         }
         else
         {
@@ -78,13 +81,12 @@ struct SudokuGrid *new_sudoku_grid (char *puzzle_str)
 struct Node *_insert_row(dlx_size_t cell_idx, dlx_size_t value, struct SudokuGrid *sudoku_grid, 
                            struct Node **upper_nodes)
 {
-    static dlx_size_t dlx_row_idx = 0; // static, works because called sequentiallly
-
+    dlx_size_t dlx_row_idx = cell_idx * sudoku_grid->max_digit + value - 1; // static, works because called sequentiallly
     dlx_size_t dim = sudoku_grid->dim, size = sudoku_grid->size, max_digit = sudoku_grid->max_digit;
     dlx_size_t sudoku_row, sudoku_col, sudoku_block;
     sudoku_row = cell_idx / max_digit;
     sudoku_col = cell_idx % max_digit;
-    sudoku_block = dim * (sudoku_row / dim) + sudoku_col % dim;  
+    sudoku_block = dim * (sudoku_row / dim) + sudoku_col / dim;  
     int i;
 
     // 4 restrictions (1 digit/cell, row, col and block), so we need 4 nodes
@@ -95,7 +97,11 @@ struct Node *_insert_row(dlx_size_t cell_idx, dlx_size_t value, struct SudokuGri
     nodes[0].dlx_column_idx = cell_idx; // so nodes[0] is the cell constraint
     nodes[1].dlx_column_idx = size + max_digit * sudoku_row + value - 1; // row constraint
     nodes[2].dlx_column_idx = 2*size + max_digit * sudoku_col + value - 1; // col constraint
-    nodes[3].dlx_column_idx = 3*size + max_digit * sudoku_block + value - 1; // block constraint        
+    nodes[3].dlx_column_idx = 3*size + max_digit * sudoku_block + value - 1; // block constraint
+    nodes[0].dlx_row_idx = dlx_row_idx;
+    nodes[1].dlx_row_idx = dlx_row_idx;
+    nodes[2].dlx_row_idx = dlx_row_idx;
+    nodes[3].dlx_row_idx = dlx_row_idx;    
 
     // link row
     nodes[0].right = &(nodes[1]);
@@ -133,8 +139,6 @@ struct Node *_insert_row(dlx_size_t cell_idx, dlx_size_t value, struct SudokuGri
     cols[nodes[2].dlx_column_idx].size++;
     nodes[3].column = &(cols[nodes[3].dlx_column_idx]);
     cols[nodes[3].dlx_column_idx].size++;
-
-    dlx_row_idx++;
 }
 
 
@@ -164,4 +168,23 @@ dlx_size_t _calc_dim(char *str_puzzle)
             break;
     }
     return i;
+}
+
+
+void search_solution_printing_callback(struct Grid *solved_grid)
+{
+    struct NodeStackItem *stack_ptr = solved_grid->solution_stack->top;
+    /* TODO: This isn't good, i need to know here dim and size of the sudoku i just solved. Look for a better solution. */
+    dlx_size_t value, cellidx, size = solved_grid->n_cols / 4;
+    char *solution = malloc(size * sizeof(char) + 1);
+    solution[size] = '\0';
+    while(stack_ptr != NULL)
+    {
+        /* dlx row num gives us cell and value */
+        cellidx = stack_ptr->data_ptr->dlx_row_idx / 4;
+        value = 1 + stack_ptr->data_ptr->dlx_row_idx % 4;
+        solution[cellidx] = 48 + value;
+        stack_ptr = stack_ptr->prev;
+    }
+    puts(solution);
 }

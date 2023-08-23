@@ -2,13 +2,17 @@
 #include <stdlib.h>
 
 #include "dlx.h"
+#include "dlx_util.h"
 #include "sudoku.h"
 
-int main(void) 
+
+struct SolutionList *solution_lst = NULL;
+
+
+int main(int argc, char **argv)
 {
-    char *puzzle_str = "0000000000000000";
-    struct SudokuGrid *sudoku_grid = new_sudoku_grid(puzzle_str);
-    printf("test");
+    struct SudokuGrid *sudoku_grid = new_sudoku_grid(argv[1]);
+    search(sudoku_grid->grid, search_solution_printing_callback);
     free_sudoku_grid(sudoku_grid);
     return 0;
 }

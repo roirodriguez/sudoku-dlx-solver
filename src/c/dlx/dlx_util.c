@@ -87,7 +87,7 @@ struct BooleanMatrix *get_grid_boolean_matrix_repr(struct Grid *grid)
 {
     if (grid != NULL)
     {
-        dlx_size_t i, j;
+        dlx_size_t i, j, max_row;
         struct BooleanMatrix *matrix = new_boolean_matrix(grid->n_rows, grid->n_cols);
         struct Node *node_ptr, *col_ptr;
         col_ptr = grid->root;

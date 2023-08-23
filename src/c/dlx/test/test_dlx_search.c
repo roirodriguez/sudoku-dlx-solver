@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "dlx.h"
 #include "dlx_util.h"
+#include "util/test_util.h"
 #include "util/test_data_dlx.h"
 
 

@@ -18,8 +18,11 @@ struct SudokuGrid {
 };
 
 
+/* Grid creation / free functions */
 struct SudokuGrid *new_sudoku_grid (char *puzzle_str);
 void free_sudoku_grid(struct SudokuGrid *grid);
 
+/* solution printing callback */
+void search_solution_printing_callback(struct Grid *grid);
 
 #endif /* _SUDOKU_H */

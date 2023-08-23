@@ -1,5 +1,5 @@
-#ifndef _KNUT_PAPER_DATA_H
-#define _KNUT_PAPER_DATA_H
+#ifndef _TEST_DATA_DLX_H
+#define _TEST_DATA_DLX_H
 
 #include "dlx.h"
 #include "dlx_util.h"
@@ -19,19 +19,4 @@ struct BooleanMatrix *get_knut_paper_matrix_col3_covered();
 struct BooleanMatrix *get_knut_paper_matrix_col35_covered();
 
 
-/* Utility function to compare two matrices, returns true if equal, false if different */
-bool check_expected(struct BooleanMatrix *matrix, struct BooleanMatrix *expected);
-
-
-/* 
- * Checks if the given nodelist contains a set of row representatives (nodes) which are 
- * an exact cover of grid.
- */
-bool check_exact_cover(struct Grid *grid, struct NodeList *lst);
-
-
-/* Print a boolean matrix, for tracing purposes */
-void print_boolean_matrix(struct BooleanMatrix *matrix);
-
-
-#endif /* _KNUT_PAPER_DATA_H */
+#endif /* _TEST_DATA_DLX_H */
